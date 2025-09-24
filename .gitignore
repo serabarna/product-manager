@@ -1,0 +1,71 @@
+# 05_design (Vue SPA)
+05_design/node_modules/
+05_design/dist/
+05_design/build/
+05_design/.env
+05_design/.env.local
+05_design/.env.*.local
+05_design/logs
+05_design/*.log
+05_design/npm-debug.log*
+05_design/yarn-debug.log*
+05_design/yarn-error.log*
+05_design/pnpm-debug.log*
+# -----------------
+# Backend (FastAPI - Python)
+# -----------------
+03_python_fastapi_project/__pycache__/
+03_python_fastapi_project/*.py[cod]
+03_python_fastapi_project/.pytest_cache/
+03_python_fastapi_project/.mypy_cache/
+03_python_fastapi_project/.pydantic_cache/
+03_python_fastapi_project/.coverage
+03_python_fastapi_project/.env
+03_python_fastapi_project/venv/
+03_python_fastapi_project/env/
+03_python_fastapi_project/.venv/
+03_python_fastapi_project/build/
+03_python_fastapi_project/dist/
+
+# -----------------
+# Frontend (Vue SPA)
+# -----------------
+04_market/node_modules/
+04_market/dist/
+04_market/build/
+04_market/.env
+04_market/.env.local
+04_market/.env.*.local
+
+# Logs
+04_market/logs
+04_market/*.log
+04_market/npm-debug.log*
+04_market/yarn-debug.log*
+04_market/yarn-error.log*
+04_market/pnpm-debug.log*
+
+# -----------------
+# Common / Global
+# -----------------
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# npm / yarn / pnpm caches
+.npm/
+.yarn/cache
+.pnpm-store/
+
+# Temp files
+tmp/
+temp/
