@@ -35,6 +35,19 @@
           <button @click="askDelete(product.id, product.name)" class="px-2 py-1 rounded bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition flex items-center gap-1">
             <img src="/src/assets/bin.svg" alt="Delete" class="w-4 h-4 filter invert" />
           </button>
+          <button 
+            @click="handleAddToCart(product)" 
+            :disabled="product.stock === 0"
+            :class="[
+              'px-2 py-1 rounded text-xs font-medium transition flex items-center gap-1',
+              product.stock > 0 
+                ? 'bg-green-600 text-white hover:bg-green-700' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            ]"
+          >
+            <span class="text-lg leading-none">+</span>
+            Add to Cart
+          </button>
         </div>
       </div>
     </div>
@@ -45,16 +58,24 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import DeleteProductDialog from './DeleteProductDialog.vue';
+import { useCart } from '../composables/useCart';
 
 const products = ref([]);
 const showDelete = ref(false);
 const deleteId = ref(null);
 const deleteName = ref('');
 const search = ref('');
+const { addToCart, onCartUpdate } = useCart();
 
 const fetchProducts = async () => {
   const res = await axios.get('http://localhost:8000/products');
   products.value = res.data;
+};
+
+const handleAddToCart = async (product) => {
+  await addToCart(product);
+  // Refresh products list to get updated stock
+  await fetchProducts();
 };
 
 const askDelete = (id, name) => {
@@ -77,5 +98,11 @@ const filteredProducts = computed(() => {
   );
 });
 
-onMounted(fetchProducts);
+onMounted(() => {
+  fetchProducts();
+  // Subscribe to cart updates
+  const unsubscribe = onCartUpdate(() => {
+    fetchProducts();
+  });
+});
 </script>
