@@ -22,7 +22,9 @@
         </div>
         <div class="text-[#030213] font-bold text-xl mb-1">${{ product.price }}</div>
         <div class="text-gray-500 text-sm mb-2">{{ product.description }}</div>
-        <div class="text-xs text-gray-500 mb-4">Stock: <span class="font-medium text-black">{{ product.stock }}</span></div>
+        <div class="text-xs text-gray-500 mb-4">
+          Stock: <span class="font-medium text-black">{{ product.stock }}</span>
+        </div>
         <div class="flex gap-2 mt-auto">
           <router-link :to="`/product/${product.id}`" class="px-2 py-1 rounded bg-gray-100 text-[#030213] text-xs font-medium hover:bg-gray-200 transition flex items-center gap-1">
             <img src="/src/assets/eye.svg" alt="View" class="w-4 h-4" />
@@ -35,6 +37,19 @@
           <button @click="askDelete(product.id, product.name)" class="px-2 py-1 rounded bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition flex items-center gap-1">
             <img src="/src/assets/bin.svg" alt="Delete" class="w-4 h-4 filter invert" />
           </button>
+          <button 
+            @click="handleAddToCart(product)" 
+            :disabled="product.stock <= 0"
+            :class="[
+              'px-2 py-1 rounded text-xs font-medium transition flex items-center gap-1',
+              product.stock > 0
+                ? 'bg-green-600 text-white hover:bg-green-700' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            ]"
+          >
+            <span class="text-lg leading-none">{{ loading ? '...' : '+' }}</span>
+            {{ loading ? 'Adding...' : 'Add to Cart' }}
+          </button>
         </div>
       </div>
     </div>
@@ -45,16 +60,37 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import DeleteProductDialog from './DeleteProductDialog.vue';
+import { useCart } from '../composables/useCart';
 
 const products = ref([]);
 const showDelete = ref(false);
 const deleteId = ref(null);
 const deleteName = ref('');
 const search = ref('');
+const loading = ref(false);
+const { addToCart, onCartUpdate, cart } = useCart();
+
+const canAddToCart = (product) => {
+  // Can add if there's any stock available
+  return product.stock > 0;
+};
 
 const fetchProducts = async () => {
   const res = await axios.get('http://localhost:8000/products');
   products.value = res.data;
+};
+
+const handleAddToCart = async (product) => {
+  if (loading.value) return;
+  loading.value = true;
+  try {
+    await addToCart(product);
+    await fetchProducts();
+  } catch (error) {
+    alert(error?.response?.data?.detail || 'Error adding to cart');
+  } finally {
+    loading.value = false;
+  }
 };
 
 const askDelete = (id, name) => {
@@ -77,5 +113,11 @@ const filteredProducts = computed(() => {
   );
 });
 
-onMounted(fetchProducts);
+onMounted(() => {
+  fetchProducts();
+  // Subscribe to cart updates
+  const unsubscribe = onCartUpdate(() => {
+    fetchProducts();
+  });
+});
 </script>
