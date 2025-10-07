@@ -167,13 +167,14 @@ async def add_to_cart(
     # Get cart ID directly
     cart_id = cart.id
     
-    # Check if product exists and has enough stock
+    # Check if product exists and has stock
     result = await db.execute(select(Product).filter(Product.id == item.product_id))
     product = result.scalar_one_or_none()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    if product.stock < item.quantity:
-        raise HTTPException(status_code=400, detail="Not enough stock")
+    
+    if product.stock <= 0:
+        raise HTTPException(status_code=400, detail="Product is out of stock")
 
     # Check if item already in cart
     result = await db.execute(
@@ -186,10 +187,7 @@ async def add_to_cart(
 
     if cart_item:
         # Update quantity if item exists
-        new_quantity = cart_item.quantity + item.quantity
-        if product.stock < new_quantity:
-            raise HTTPException(status_code=400, detail="Not enough stock")
-        cart_item.quantity = new_quantity
+        cart_item.quantity = cart_item.quantity + item.quantity
     else:
         # Create new cart item
         cart_item = CartItem(

@@ -22,7 +22,9 @@
         </div>
         <div class="text-[#030213] font-bold text-xl mb-1">${{ product.price }}</div>
         <div class="text-gray-500 text-sm mb-2">{{ product.description }}</div>
-        <div class="text-xs text-gray-500 mb-4">Stock: <span class="font-medium text-black">{{ product.stock }}</span></div>
+        <div class="text-xs text-gray-500 mb-4">
+          Stock: <span class="font-medium text-black">{{ product.stock }}</span>
+        </div>
         <div class="flex gap-2 mt-auto">
           <router-link :to="`/product/${product.id}`" class="px-2 py-1 rounded bg-gray-100 text-[#030213] text-xs font-medium hover:bg-gray-200 transition flex items-center gap-1">
             <img src="/src/assets/eye.svg" alt="View" class="w-4 h-4" />
@@ -37,16 +39,16 @@
           </button>
           <button 
             @click="handleAddToCart(product)" 
-            :disabled="product.stock === 0"
+            :disabled="product.stock <= 0"
             :class="[
               'px-2 py-1 rounded text-xs font-medium transition flex items-center gap-1',
-              product.stock > 0 
+              product.stock > 0
                 ? 'bg-green-600 text-white hover:bg-green-700' 
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             ]"
           >
-            <span class="text-lg leading-none">+</span>
-            Add to Cart
+            <span class="text-lg leading-none">{{ loading ? '...' : '+' }}</span>
+            {{ loading ? 'Adding...' : 'Add to Cart' }}
           </button>
         </div>
       </div>
@@ -65,7 +67,13 @@ const showDelete = ref(false);
 const deleteId = ref(null);
 const deleteName = ref('');
 const search = ref('');
-const { addToCart, onCartUpdate } = useCart();
+const loading = ref(false);
+const { addToCart, onCartUpdate, cart } = useCart();
+
+const canAddToCart = (product) => {
+  // Can add if there's any stock available
+  return product.stock > 0;
+};
 
 const fetchProducts = async () => {
   const res = await axios.get('http://localhost:8000/products');
@@ -73,9 +81,16 @@ const fetchProducts = async () => {
 };
 
 const handleAddToCart = async (product) => {
-  await addToCart(product);
-  // Refresh products list to get updated stock
-  await fetchProducts();
+  if (loading.value) return;
+  loading.value = true;
+  try {
+    await addToCart(product);
+    await fetchProducts();
+  } catch (error) {
+    alert(error?.response?.data?.detail || 'Error adding to cart');
+  } finally {
+    loading.value = false;
+  }
 };
 
 const askDelete = (id, name) => {

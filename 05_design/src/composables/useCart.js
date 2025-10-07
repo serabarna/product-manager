@@ -18,15 +18,22 @@ export function useCart() {
   };
   const addToCart = async (product) => {
     try {
+      console.log('Adding to cart:', {
+        productId: product.id,
+        stock: product.stock,
+        currentCart: cart.value
+      });
+      
       const response = await api.post('/cart/add', {
         product_id: product.id,
         quantity: 1
       });
+      
       cart.value = response.data;
-      console.log('Cart updated:', cart.value);
+      notifyListeners();
       return response.data;
     } catch (error) {
-      console.error('Error adding to cart:', error.response?.data || error);
+      throw error; // Re-throw to handle in the component
     }
   };
 
@@ -46,10 +53,8 @@ export function useCart() {
       
       // Update with the server response to ensure consistency
       cart.value = response.data;
-      console.log('Cart updated after remove:', cart.value);
       notifyListeners();
     } catch (error) {
-      console.error('Error removing from cart:', error.response?.data || error);
       // If there was an error, refresh the cart to ensure consistency
       await fetchCart();
       notifyListeners();
@@ -60,9 +65,7 @@ export function useCart() {
     try {
       const response = await api.get('/cart');
       cart.value = response.data;
-      console.log('Cart fetched:', cart.value); // Add logging
     } catch (error) {
-      console.error('Error fetching cart:', error.response?.data || error);
     }
   };
 
